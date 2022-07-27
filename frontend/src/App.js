@@ -19,11 +19,13 @@ function App() {
       <Header toggleConfigForm={() => setShowConfigForm(!showConfigForm)} />
       {showConfigForm && <ConfigForm bot1={bot1} bot2={bot2} />}
       <PropositionForm
-        onSubmit={(e) => {
-          e.preventDefault();
-          setArgumentStarted(true);
+        onSubmitExtra={(proposition) => {
+          if (!argumentStarted) {
+            setArgumentStarted(true);
+            setProposition(proposition);
+          }
         }}
-        setProposition={setProposition}
+        onReset={() => setArgumentStarted(false)}
       />
       {argumentStarted && (
         <Arguments bot1={bot1} bot2={bot2} proposition={proposition} />

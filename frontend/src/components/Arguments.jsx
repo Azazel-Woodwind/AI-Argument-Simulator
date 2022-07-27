@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Argument from "./Argument";
 import ContinuePrompt from "./ContinuePrompt";
 
 const Arguments = ({ bot1, bot2, proposition }) => {
   const [startNewArgument, setStartNewArgument] = useState(true);
-  const [nextArgument, setNextArgument] = useState();
+  const [nextArgument, setNextArgument] = useState("");
   const [botArguments, setBotArguments] = useState([]);
   const turnNumber = useRef(1);
+  const convoID = useRef();
 
   const getNextBot = () => (turnNumber.current % 2 === 1 ? bot1 : bot2);
 
@@ -38,6 +40,7 @@ const Arguments = ({ bot1, bot2, proposition }) => {
       body: JSON.stringify({
         ...nextBot,
         prompt: generatePrompt(nextBot),
+        convoID: convoID.current,
       }),
     };
 
@@ -52,9 +55,11 @@ const Arguments = ({ bot1, bot2, proposition }) => {
   };
 
   useEffect(() => {
+    console.log(1);
+    convoID.current = uuidv4();
     fetchAndDisplayNextArgument();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [proposition]);
+  }, []);
 
   return (
     <div>

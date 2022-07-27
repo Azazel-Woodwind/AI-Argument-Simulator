@@ -7,20 +7,27 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-const arguments = [];
+const arguments = {};
 
 const getNextArgument = asyncHandler(async (req, res) => {
-  if (!arguments.length) {
+  const { convoID } = req.body;
+  console.log(convoID);
+
+  if (!arguments[convoID] || !arguments[convoID].length) {
     const nextArguments = await getResponse(req.body);
-    arguments.push(...nextArguments);
+    if (arguments[convoID]) {
+      arguments[convoID].push(...nextArguments);
+    } else {
+      arguments[convoID] = [...nextArguments];
+    }
   }
 
-  // console.log(arguments);
-  // console.log(req.body.name + ":");
+  console.log(arguments);
+  console.log(req.body.name + ":");
 
-  let nextArgument = arguments.shift();
+  let nextArgument = arguments[convoID].shift();
   if (nextArgument.toLowerCase() === req.body.name.toLowerCase() + ":") {
-    nextArgument += " " + arguments.shift();
+    nextArgument += " " + arguments[convoID].shift();
   }
 
   res.status(200).json({ responseText: nextArgument });

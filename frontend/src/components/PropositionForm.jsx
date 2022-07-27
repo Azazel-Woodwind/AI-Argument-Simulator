@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-const PropositionForm = ({ onSubmit, setProposition }) => {
+const PropositionForm = ({ onSubmitExtra, onReset }) => {
   const [propositionText, setPropositionText] = useState("");
   return (
     <form
       onSubmit={(e) => {
-        setProposition(propositionText);
-        onSubmit(e);
+        e.preventDefault();
+        onSubmitExtra(propositionText);
       }}
     >
       <div>
@@ -21,6 +21,7 @@ const PropositionForm = ({ onSubmit, setProposition }) => {
         </label>
       </div>
       <input type="submit" value="Let the argument begin" />
+      <input type="button" value="Reset argument" onClick={onReset} />
     </form>
   );
 };
