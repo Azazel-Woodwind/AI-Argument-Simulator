@@ -1,5 +1,6 @@
 const { Configuration, OpenAIApi } = require("openai");
 const asyncHandler = require("express-async-handler");
+const res = require("express/lib/response");
 require("dotenv").config();
 
 const configuration = new Configuration({
@@ -14,7 +15,7 @@ const getNextArgument = asyncHandler(async (req, res) => {
   console.log(convoID);
 
   if (!arguments[convoID] || !arguments[convoID].length) {
-    const nextArguments = await getResponse(req.body);
+    const nextArguments = getResponse({ ...req.body, res });
     if (arguments[convoID]) {
       arguments[convoID].push(...nextArguments);
     } else {
@@ -33,24 +34,34 @@ const getNextArgument = asyncHandler(async (req, res) => {
   res.status(200).json({ responseText: nextArgument });
 });
 
-const getResponse = async ({
-  prompt,
-  model,
-  temp,
-  freqPenalty,
-  presPenalty,
-}) => {
-  const response = await openai.createCompletion({
-    model,
-    prompt,
-    temperature: temp,
-    max_tokens: 2000,
-    top_p: 1,
-    frequency_penalty: freqPenalty,
-    presence_penalty: presPenalty,
-  });
+const getResponse = asyncHandler(
+  async ({ prompt, model, temp, freqPenalty, presPenalty, res }) => {
+    let response;
+    let max_tokens;
+    if (model === "text-davinci-002") {
+      max_tokens = 2000;
+    } else {
+      max_tokens = 1000;
+    }
+    try {
+      response = await openai.createCompletion({
+        model,
+        prompt,
+        temperature: parseFloat(temp),
+        max_tokens,
+        top_p: 1,
+        frequency_penalty: parseFloat(freqPenalty),
+        presence_penalty: parseFloat(presPenalty),
+      });
+    } catch (error) {
+      res.status(500);
+      throw new Error(error);
+    }
 
-  return response.data.choices[0].text.split("\n").filter((arg) => arg !== "");
-};
+    return response.data.choices[0].text
+      .split("\n")
+      .filter((arg) => arg !== "");
+  }
+);
 
 module.exports = getNextArgument;
