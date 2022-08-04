@@ -1,12 +1,13 @@
-import ShowConfig from "./ShowConfig"
+import { useLocation, Link } from "react-router-dom";
 
-const Header = ({toggleConfigForm}) => {
+const Header = () => {
   return (
-    <header style={{display: "flex"}}>
-        <h1>Debate simulator</h1>
-        <ShowConfig toggleConfigForm={toggleConfigForm}/>
+    <header style={{ display: "flex" }}>
+      <Link to="/">Debate Simulator</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register">Register</Link>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

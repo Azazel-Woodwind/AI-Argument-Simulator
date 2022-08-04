@@ -15,7 +15,7 @@ const getNextArgument = asyncHandler(async (req, res) => {
   console.log(convoID);
 
   if (!arguments[convoID] || !arguments[convoID].length) {
-    const nextArguments = getResponse({ ...req.body, res });
+    const nextArguments = await getResponse({ ...req.body, res });
     if (arguments[convoID]) {
       arguments[convoID].push(...nextArguments);
     } else {
@@ -54,6 +54,7 @@ const getResponse = asyncHandler(
         presence_penalty: parseFloat(presPenalty),
       });
     } catch (error) {
+      console.log(1);
       res.status(500);
       throw new Error(error);
     }

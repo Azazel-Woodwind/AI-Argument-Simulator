@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import RangeSlider from "./RangeSlider";
 
 const ConfigForm = ({ bot1, bot2 }) => {
   const [bot1Border, setBot1Border] = useState("2px solid blue");
@@ -99,9 +100,9 @@ const ConfigForm = ({ bot1, bot2 }) => {
         Bot 2
       </button>
       <form onSubmit={onSubmit}>
-        <div>
+        <div className="form-control">
+          <p style={{ margin: 0 }}>You are a/an</p>
           <label>
-            You are a/an:
             <input
               type="text"
               value={nameText}
@@ -110,8 +111,8 @@ const ConfigForm = ({ bot1, bot2 }) => {
             />
           </label>
         </div>
-        <div>
-          You are arguing:
+        <div className="form-control">
+          <p style={{ margin: 0 }}>You are arguing</p>
           <label>
             <input
               type="radio"
@@ -133,8 +134,8 @@ const ConfigForm = ({ bot1, bot2 }) => {
             Against
           </label>
         </div>
-        <div>
-          Model:
+        <div className="form-control">
+          <p style={{ margin: 0 }}>Model</p>
           <label>
             <input
               type="radio"
@@ -176,34 +177,34 @@ const ConfigForm = ({ bot1, bot2 }) => {
             text-ada-001
           </label>
         </div>
-        <div>
+        <div className="form-control">
+          <p style={{ margin: 0 }}>Temperature</p>
           <label>
-            Temperature:
-            <input
-              type="text"
-              placeholder="0"
+            <RangeSlider
+              min={0}
+              max={1}
               value={temp}
               onChange={(e) => setTemp(e.target.value)}
             />
           </label>
         </div>
-        <div>
+        <div className="form-control">
+          <p style={{ margin: 0 }}>Frequency Penalty</p>
           <label>
-            Frequency penalty:
-            <input
-              type="text"
-              placeholder="0"
+            <RangeSlider
+              min={0}
+              max={2}
               value={freqPenalty}
               onChange={(e) => setFreqPenalty(e.target.value)}
             />
           </label>
         </div>
-        <div>
+        <div className="form-control">
+          <p style={{ margin: 0 }}>Presence penalty</p>
           <label>
-            Presence penalty:
-            <input
-              type="text"
-              placeholder="0"
+            <RangeSlider
+              min={0}
+              max={2}
               value={presPenalty}
               onChange={(e) => setPresPenalty(e.target.value)}
             />
