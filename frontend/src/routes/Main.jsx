@@ -4,6 +4,7 @@ import { useState } from "react";
 import Arguments from "../components/Arguments";
 import ShowConfig from "../components/ShowConfig";
 import Bot from "../Bot";
+import Header from "../components/Header";
 
 const bot1 = new Bot("Man", true);
 const bot2 = new Bot("Woman", false);
@@ -15,6 +16,7 @@ function Main() {
 
   return (
     <div>
+      <Header className="header" />
       <ShowConfig
         toggleConfigForm={() => setShowConfigForm(!showConfigForm)}
         text={showConfigForm ? "Close config" : "Open config"}

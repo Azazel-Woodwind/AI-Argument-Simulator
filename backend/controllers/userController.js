@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    res.status(401).json({
+    res.status(201).json({
       _id: user.id,
       username,
     });
@@ -55,9 +55,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
     res.status(400);
-    throw new Error("Incorrect email or password");
+    throw new Error("Incorrect username or password");
   }
 
+  console.log("logged in");
   res.status(200).json({
     _id: user.id,
     username: user.username,
