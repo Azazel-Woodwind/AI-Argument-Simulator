@@ -10,34 +10,66 @@ const openai = new OpenAIApi(configuration);
 
 const arguments = {};
 
+// @desc deletes selected argument
+// @route DELETE /api/arguments/:id
+// @access PRIVATE
+const deleteArgument = asyncHandler(async (req, res) => {
+  const argument = await Argument.findById(req.params.id);
+
+  if (!argument) {
+    res.status(400);
+    throw new Error("Goal not found");
+  }
+
+  if (argument.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error("Access denied");
+  }
+
+  await argument.remove();
+
+  res.status(200).json({ id: req.params.id });
+});
+
+// @desc sends back all arguments saved by logged in user
+// @route GET /api/arguments
+// @access PRIVATE
+const getArguments = asyncHandler(async (req, res) => {
+  const arguments = await Argument.find({ user: req.user.id });
+
+  res.status(200).json(arguments);
+});
+
+// @desc saves argument
+// @route POST /api/arguments
+// @access PRIVATE
 const saveArgument = asyncHandler(async (req, res) => {
-  const { username, convoID } = req.body;
+  const { convoID, proposition, bot1Config, bot2Config } = req.body;
+  console.log(arguments);
+  console.log(convoID);
 
   const argument = arguments[convoID].argument;
 
-  const alreadySaved = await Argument.findOne({ username });
-
-  if (alreadySaved) {
-    res.status(400);
-    throw new Error("Argument already saved");
-  }
-
   const createdArgument = await Argument.create({
+    user: req.user._id,
+    proposition,
+    bot1Config,
+    bot2Config,
     argument,
-    username,
   });
 
+  console.log(createdArgument);
   if (createdArgument) {
-    res.status(201).json({
-      id: createdArgument.id,
-      username: createdArgument.username,
-    });
+    res.status(201).json({ createdArgument });
   } else {
     res.status(400);
     throw new Error("Something went wrong");
   }
 });
 
+// @desc sends back next line in argument
+// @route POST /api/arguments/next-argument
+// @access PUBLIC
 const getNextArgument = asyncHandler(async (req, res) => {
   const { convoID } = req.body;
   console.log(convoID);
@@ -62,6 +94,7 @@ const getNextArgument = asyncHandler(async (req, res) => {
   let nextArgument =
     arguments[convoID].argument[arguments[convoID].nextArgumentIndex];
   arguments[convoID].nextArgumentIndex++;
+
   if (nextArgument.toLowerCase() === req.body.name.toLowerCase() + ":") {
     nextArgument +=
       " " + arguments[convoID].argument[arguments[convoID].nextArgumentIndex];
@@ -102,4 +135,9 @@ const getResponse = asyncHandler(
   }
 );
 
-module.exports = getNextArgument;
+module.exports = {
+  getNextArgument,
+  saveArgument,
+  getArguments,
+  deleteArgument,
+};

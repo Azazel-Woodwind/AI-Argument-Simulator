@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(errorHandler);
 
-app.use("/api/arguments/", require("./routes/argumentRoutes.js"));
+app.use("/api/arguments", require("./routes/argumentRoutes.js"));
 app.use("/api/users", require("./routes/userRoutes"));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
