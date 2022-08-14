@@ -21,7 +21,7 @@ const SavedArguments = () => {
   }, []);
 
   return (
-    <div>
+    <div style={{ minWidth: "200px" }}>
       {!isLoaded ? (
         <p>Loading...</p>
       ) : (

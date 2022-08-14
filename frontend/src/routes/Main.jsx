@@ -45,7 +45,11 @@ function Main() {
   const incrementDisplayedText = async (text, startingIndex) => {
     let lastChar;
     skipDialogue.current = false;
-    while (startingIndex !== text.length - 1 && !skipDialogue.current) {
+    while (
+      startingIndex !== text.length - 1 &&
+      !skipDialogue.current &&
+      argumentStarted
+    ) {
       setNextArgument(text.slice(0, startingIndex++));
       lastChar = text.charAt(startingIndex - 2);
       if (lastChar === ".") {
@@ -67,6 +71,9 @@ function Main() {
           }, 20)
         );
       }
+    }
+    if (!convoID.current) {
+      return;
     }
     setNextArgument(text);
 
@@ -150,7 +157,15 @@ function Main() {
               setProposition(proposition);
             }
           }}
-          onReset={() => setArgumentStarted(false)}
+          onReset={() => {
+            setArgumentStarted(false);
+            convoID.current = undefined;
+            setBotArguments([]);
+            turnNumber.current = 1;
+            skipDialogue.current = true;
+            setStartNewArgument(true);
+            setNextArgument("");
+          }}
         />
         {argumentStarted && (
           <Arguments

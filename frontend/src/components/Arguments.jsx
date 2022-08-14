@@ -14,8 +14,9 @@ const Arguments = ({
   setStartNewArgument,
 }) => {
   useEffect(() => {
-    if (!convoID) {
+    if (!convoID.current) {
       convoID.current = uuidv4();
+      console.log(convoID.current);
     }
     fetchAndDisplayNextArgument();
     // eslint-disable-next-line react-hooks/exhaustive-deps
