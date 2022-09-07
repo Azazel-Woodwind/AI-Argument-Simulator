@@ -24,7 +24,7 @@ const Arguments = ({
 
   return (
     <div>
-      {botArguments.map((argument, i) => (
+      {botArguments.current.map((argument, i) => (
         <Argument key={i} text={argument} />
       ))}
       {startNewArgument ? (

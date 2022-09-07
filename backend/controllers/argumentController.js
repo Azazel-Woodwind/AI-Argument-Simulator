@@ -10,6 +10,31 @@ const openai = new OpenAIApi(configuration);
 
 const arguments = {};
 
+// @desc updates arguments with argument from argument id with given convoid
+// @route PUT /api/arguments/next-argument/:id
+// @access PRIVATE
+const updateNextArgument = asyncHandler(async (req, res) => {
+  const { convoID } = req.body;
+  const argument = await Argument.findById(req.params.id);
+
+  if (!argument) {
+    res.status(400);
+    throw new Error("Argument not found");
+  }
+
+  if (argument.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error("Access denied");
+  }
+
+  arguments[convoID] = {
+    argument: argument.argument,
+    nextArgumentIndex: 0,
+  };
+
+  res.status(200).json({ convoID });
+});
+
 // @desc deletes selected argument
 // @route DELETE /api/arguments/:id
 // @access PRIVATE
@@ -18,7 +43,7 @@ const deleteArgument = asyncHandler(async (req, res) => {
 
   if (!argument) {
     res.status(400);
-    throw new Error("Goal not found");
+    throw new Error("Argument not found");
   }
 
   if (argument.user.toString() !== req.user.id) {
@@ -36,7 +61,6 @@ const deleteArgument = asyncHandler(async (req, res) => {
 // @access PRIVATE
 const getArguments = asyncHandler(async (req, res) => {
   const arguments = await Argument.find({ user: req.user.id });
-
   res.status(200).json(arguments);
 });
 
@@ -140,4 +164,5 @@ module.exports = {
   saveArgument,
   getArguments,
   deleteArgument,
+  updateNextArgument,
 };

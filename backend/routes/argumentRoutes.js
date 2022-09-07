@@ -5,14 +5,14 @@ const {
   getArguments,
   deleteArgument,
   saveArgument,
+  updateNextArgument,
 } = require("../controllers/argumentController");
 const protect = require("../middleware/authMiddleware");
 
 router.route("/next-argument").post(getNextArgument);
-router
-  .route("/")
-  .post(protect, saveArgument)
-  .get(protect, getArguments)
-  .delete(protect, deleteArgument);
+router.route("/next-argument/:id").put(protect, updateNextArgument);
+router.route("/").post(protect, saveArgument).get(protect, getArguments);
+
+router.route("/:id").delete(protect, deleteArgument);
 
 module.exports = router;

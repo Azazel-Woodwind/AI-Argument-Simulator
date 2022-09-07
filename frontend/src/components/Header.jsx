@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { useLocation, Link } from "react-router-dom";
 import UserContext from "../UserContext";
 
-const Header = ({ onClick, text }) => {
+const Header = ({ text, setShowSavedArguments }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { username, setUsername } = useContext(UserContext);
   const location = useLocation();
@@ -38,13 +38,14 @@ const Header = ({ onClick, text }) => {
   const signOut = () => {
     sessionStorage.removeItem("token");
     setIsLoggedIn(false);
+    setShowSavedArguments(false);
   };
 
   const showSavedArguments = () => {
     if (!isLoggedIn) {
       alert("You must be logged in to view saved arguments");
     } else {
-      onClick();
+      setShowSavedArguments((prevState) => !prevState);
     }
   };
 
@@ -59,7 +60,7 @@ const Header = ({ onClick, text }) => {
       ) : (
         <>
           <Link to="/login">Login</Link>
-          <Link to="/Register">Register</Link>
+          <Link to="/register">Register</Link>
         </>
       )}
       {location.pathname === "/" && (

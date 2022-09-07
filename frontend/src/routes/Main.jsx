@@ -1,39 +1,43 @@
 import ConfigForm from "../components/ConfigForm";
 import PropositionForm from "../components/PropositionForm";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Arguments from "../components/Arguments";
 import ShowConfig from "../components/ShowConfig";
 import Bot from "../Bot";
 import Header from "../components/Header";
 import SavedArguments from "../components/SavedArguments";
+import { v4 as uuidv4 } from "uuid";
 
-const bot1 = new Bot("Man", true);
-const bot2 = new Bot("Woman", false);
+let bot1 = new Bot("Man", true);
+let bot2 = new Bot("Woman", false);
 
 function Main() {
   const [showConfigForm, setShowConfigForm] = useState(false);
   const [argumentStarted, setArgumentStarted] = useState(false);
-  const [proposition, setProposition] = useState("");
   const [showSavedarguments, setShowSavedArguments] = useState(false);
   const [startNewArgument, setStartNewArgument] = useState(true);
   const [nextArgument, setNextArgument] = useState("");
-  const [botArguments, setBotArguments] = useState([]);
+  // const [botArguments, setBotArguments] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [args, setArgs] = useState([]);
   const turnNumber = useRef(1);
   const convoID = useRef();
   const skipDialogue = useRef(false);
+  const proposition = useRef("");
+  const botArguments = useRef([]);
 
   const getNextBot = () => (turnNumber.current % 2 === 1 ? bot1 : bot2);
 
   const generatePrompt = (bot) => {
     let prompt = `The following is a debate between a ${bot1.name} and a ${
       bot2.name
-    } on the proposition: ${proposition} The ${bot1.name} is debating ${
+    } on the proposition: ${proposition.current} The ${bot1.name} is debating ${
       bot1.isFor ? "for" : "against"
     } this proposition and the ${bot2.name} is debating ${
       bot2.isFor ? "for" : "against"
     } this proposition.\nContinue the conversation.\n\n`;
-    if (botArguments.length) {
-      prompt += botArguments.join("\n");
+    if (botArguments.current.length) {
+      prompt += botArguments.current.join("\n");
       prompt += `\n\n${bot.name}:`;
     } else {
       prompt += bot.name + ":";
@@ -77,15 +81,13 @@ function Main() {
     }
     setNextArgument(text);
 
-    setBotArguments((currentState) => {
-      currentState.push(text);
-      return currentState;
-    });
+    botArguments.current.push(text);
     setStartNewArgument(false);
     turnNumber.current++;
   };
 
   const fetchAndDisplayNextArgument = async () => {
+    console.log(proposition.current);
     const nextBot = getNextBot();
     setNextArgument(`${nextBot.name}: <thinking>`);
     const requestOptions = {
@@ -112,6 +114,19 @@ function Main() {
     incrementDisplayedText(responseText, nextBot.name.length + 3);
   };
 
+  const fetchData = useCallback(async () => {
+    const token = sessionStorage.getItem("token");
+    const reqOptions = {
+      method: "GET",
+      headers: { "Content-Type": "application/json", Authorization: token },
+    };
+    const response = await fetch("/api/arguments", reqOptions);
+    const data = await response.json();
+    setArgs(data.map((arg) => ({ ...arg, argument: undefined })));
+
+    setIsLoaded(true);
+  }, []);
+
   const saveArgument = async () => {
     if (!sessionStorage.getItem("token")) {
       alert("You must be logged in to save arguments");
@@ -122,7 +137,7 @@ function Main() {
         headers: { Authorization: token, "Content-Type": "application/json" },
         body: JSON.stringify({
           convoID: convoID.current,
-          proposition,
+          proposition: proposition.current,
           bot1Config: bot1,
           bot2Config: bot2,
         }),
@@ -130,6 +145,7 @@ function Main() {
 
       try {
         const argument = await fetch("/api/arguments", reqOptions);
+        fetchData();
         alert("Argument saved");
       } catch (error) {
         alert(error);
@@ -137,12 +153,46 @@ function Main() {
     }
   };
 
+  const loadArgument = async (id, bot1Config, bot2Config, prop) => {
+    convoID.current = uuidv4();
+    const reqOptions = {
+      method: "PUT",
+      headers: {
+        Authorization: sessionStorage.getItem("token"),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        convoID: convoID.current,
+      }),
+    };
+    const response = await fetch(
+      `/api/arguments/next-argument/${id}`,
+      reqOptions
+    );
+    const data = await response.json();
+
+    botArguments.current = [];
+    turnNumber.current = 1;
+    skipDialogue.current = true;
+    setStartNewArgument(true);
+    setNextArgument("");
+    bot1 = bot1Config;
+    bot2 = bot2Config;
+    proposition.current = prop;
+    console.log(proposition.current);
+    if (argumentStarted) {
+      fetchAndDisplayNextArgument();
+    } else {
+      setArgumentStarted(true);
+    }
+  };
+
   return (
     <div style={{ display: "flex" }}>
-      <div>
+      <div style={{ maxWidth: "500px" }}>
         <Header
           className="header"
-          onClick={() => setShowSavedArguments(!showSavedarguments)}
+          setShowSavedArguments={setShowSavedArguments}
           text={showSavedarguments ? "Close" : "Saved Arguments"}
         />
         <ShowConfig
@@ -151,16 +201,16 @@ function Main() {
         />
         {showConfigForm && <ConfigForm bot1={bot1} bot2={bot2} />}
         <PropositionForm
-          onSubmitExtra={(proposition) => {
+          onSubmitExtra={(prop) => {
             if (!argumentStarted) {
               setArgumentStarted(true);
-              setProposition(proposition);
+              proposition.current = prop;
             }
           }}
           onReset={() => {
             setArgumentStarted(false);
             convoID.current = undefined;
-            setBotArguments([]);
+            botArguments.current = [];
             turnNumber.current = 1;
             skipDialogue.current = true;
             setStartNewArgument(true);
@@ -180,7 +230,15 @@ function Main() {
           />
         )}
       </div>
-      {showSavedarguments && <SavedArguments />}
+      {showSavedarguments && (
+        <SavedArguments
+          fetchData={fetchData}
+          args={args}
+          setArgs={setArgs}
+          isLoaded={isLoaded}
+          loadArgument={loadArgument}
+        />
+      )}
     </div>
   );
 }
